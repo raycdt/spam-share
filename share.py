@@ -28,10 +28,14 @@ def menu_logo():
     banner()
 
 def login():
+    # Force remove old session files before logging in
+    if os.path.exists("token.txt"): os.remove("token.txt")
+    if os.path.exists("cookie.txt"): os.remove("cookie.txt")
+    
     menu_logo()
     
     status_info = "[bold cyan]TAKE COOKIES FROM KIWI BROWSER."
-    console.print(Panel(status_info, title='[bold cyan]Modified by ray',style="magenta", width=70))
+    console.print(Panel(status_info, title='[bold cyan]Modified by ray', style="magenta", width=70))
     
     cookie = console.input("[bold cyan] └──> [bold magenta]Enter Cookie :")
     
@@ -68,11 +72,12 @@ def login():
         console.print(Panel("Invalid Cookie! Please try again.", title="[bold red]Error", style="red", width=45))
         time.sleep(2)
         login()
-        		
+                
 def start_sharing():
     try:
         if not os.path.exists("token.txt") or not os.path.exists("cookie.txt"):
             login()
+            return
             
         token = open("token.txt","r").read()
         cok = open("cookie.txt","r").read()
@@ -104,12 +109,12 @@ def start_sharing():
             response = ses.post(f"https://b-graph.facebook.com/v13.0/me/feed?link={link}&published=0&access_token={token}", cookies=cookie).json()
             
             if "id" in response:
-                post_id = response.get("id").split('_')[-1] 
-                console.print(f"[bold cyan] [[bold green]{count}[/bold cyan]] [bold white]Successfully shared! Post ID: [bold cyan]{post_id}")
+                raw_id = response.get("id")
+                post_id = raw_id.split('_')[-1] if '_' in raw_id else raw_id
                 
+                console.print(f"[bold cyan] [[bold green]{count}[/bold cyan]] [bold white]Successfully shared! Post ID: [bold cyan]{post_id}")
                 time.sleep(delay_time) 
             else:
-                # Ipakita ang error message kung bakit failed (optional pero helpful)
                 err_msg = response.get("error", {}).get("message", "Sharing blocked or Cookie expired.")
                 console.print(Panel(f"{err_msg}", title="[bold red]Failed", style="red", width=70))
                 break
@@ -121,7 +126,4 @@ def start_sharing():
         
 
 if __name__ == "__main__":
-    if os.path.exists("token.txt") and os.path.exists("cookie.txt"):
-        start_sharing()
-    else:
-        login()
+    login()
